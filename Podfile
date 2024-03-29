@@ -1,4 +1,4 @@
-platform :ios, '9.0'
+platform :ios, '13.0'
 use_modular_headers!
 
 workspace 'Leanplum.xcworkspace'
@@ -48,4 +48,22 @@ post_install do |installer|
       end
     end
   end
+  
+  # Ensure config use the deployment target version of the project
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings.delete 'IPHONEOS_DEPLOYMENT_TARGET'
+    end
+  end
+
+  # Ensure comaptibility with XCode 15
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      xcconfig_path = config.base_configuration_reference.real_path
+      xcconfig = File.read(xcconfig_path)
+      xcconfig_mod = xcconfig.gsub(/DT_TOOLCHAIN_DIR/, "TOOLCHAIN_DIR")
+      File.open(xcconfig_path, "w") { |file| file << xcconfig_mod }
+    end
+  end
+  
 end
